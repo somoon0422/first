@@ -1,0 +1,92 @@
+from flask import Flask, request, render_template
+app = Flask(__name__)
+
+from pymongo import MongoClient
+client = MongoClient('mongodb+srv://test:sparta@cluster0.d6xodrs.mongodb.net/Cluster0?retryWrites=true&w=majority')
+db = client.dbsparta
+collection = db["w4prac"]
+
+import random
+
+@app.route("/")
+def index():
+    images = [
+        "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdLv8Yn%2FbtrS7uHosPd%2FkZ0g7BJ56oLf5IzWZfGYq0%2Fimg.jpg",
+        "https://p4.wallpaperbetter.com/wallpaper/726/913/170/art-avatar-neytiri-jake-sully-pandora-hd-wallpaper-preview.jpg",
+        "https://post-phinf.pstatic.net/MjAxOTAzMDlfOTcg/MDAxNTUyMDk1NjA0Mzg1.xDSba0OjwTgvC5nCARpy7MJN6v-wNn-z3diMBQAroIUg.T-8S155iuN3ftNQlAjhwH9jG9PI3FSMbMUQBBTicuIYg.JPEG/1.jpg?type=w1200",
+    ]
+    texts = [
+        "<아바타1>를 보고싶었는데 어디서 보냐구요?",
+        "<해리포터>를 보고싶었는데 어디서 보냐구요?",
+        "<반지의제왕>을 보고싶었는데 어디서 보냐구요?",
+    ]
+    image_url = random.choice(images)
+    text = random.choice(texts)
+
+    return render_template("index.html", image_url=image_url, text=text)
+
+@app.route("/search", methods=["POST"])
+def search():
+    query = request.form.get("query")
+    results = search_items(query)
+    return render_template("search_results.html", query=query, results=results)
+
+def search_items(query):
+    collection.create_index([("title", "text"), ("image", "text")])
+
+    # Search the MongoDB database
+    items = list(collection.find({"$text": {"$search": query}}))
+    return [{'title': item['title'], 'image': item['image']} for item in items]
+
+if __name__ == '__main__':
+   app.run('0.0.0.0', port=6500, debug=True)
+9:27
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <title>어디서봐</title>
+    </head>
+
+    <body style="background-image: url({{ image_url }});
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;">
+
+    <div style="text-align: center;">
+        <h3 style="color: white;">{{ text }}</h3>
+    </div>
+
+
+    <form action="{{ url_for('search') }}" method="post">
+        <input type="text" name="query">
+        <input type="submit" value="검색">
+    </form>
+
+    </body>
+</html>
+9:27
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+</head>
+
+<body>
+    <form action="{{ url_for('search') }}" method="post">
+        <input type="text" name="query">
+        <input type="submit" value="검색">
+    </form>
+
+    <h1>{{ query }} 검색 결과</h1>
+    <ul>
+        {% for result in results %}
+        <li>
+            <h2>{{ result.title }}</h2>
+            <p><img src="{{ result['image'] }}"></p>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
