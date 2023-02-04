@@ -3,8 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        function save_url() {
+            let url_give = $('#url').val()
+
+            $.ajax({
+                type: "POST",
+                url: "/test",
+                data: {url_give: url_give},
+                success: function (response) {
+                    alert(response['msg'])
+                    window.location.reload()
+                }
+            });
+        }
+
+        function save_comment() {
+            // let id_give = '63ddd50ff7746a2d72a52a27'
+            let comment_give = $('#comment').val()
+            let star_give = $('#star').val()
+            let time_give = new Date(Date.now())
+
+                $.ajax({
+                    type: "POST",
+                    url: "/detail/",
+                    data: {comment_give: comment_give, star_give: star_give, time_give: time_give},
+                    // id_give: id_give,
+                    success: function (response) {
+                        alert(response['msg'])
+                        window.location.reload()
+                    }
+                });
+        }
+    </script>
+
 </head>
 <body>
+<h1>크롤링할 url입력하기</h1>
+<input id="url">
+<button onclick="save_url()">저장</button>
+<!--  코멘트받기-->
+<div>
+    <input id="comment">
+    <select id="star">
+        <option value="1">1점</option>
+        <option value="2">2점</option>
+        <option value="3">3점</option>
+        <option value="4">4점</option>
+        <option value="5">5점</option>
+    </select>
+    <button onclick="save_comment()" id="myButton">한줄평 등록</button>
+
+
+</div>
 
 </body>
 </html>

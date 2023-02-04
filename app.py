@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 
 from pymongo import MongoClient
 import certifi
+from bson.objectid import ObjectId
 
 ca = certifi.where()
 
@@ -94,7 +95,8 @@ def test_post():
 # 상세페이지, 한줄평저장api
 @app.route('/detail/', methods=['POST'])
 def detail_comment_post():
-    id_give = request.form['id_give']
+    # id_give = request.form['id_give']
+    id_give = '63dde3df663cfbf29a97d538'
     comment_give = request.form['comment_give']
     star_give = request.form['star_give']
     time_give = request.form['time_give']
@@ -104,10 +106,12 @@ def detail_comment_post():
 
     # db.w4prac_comments.insert_one(comment_content)
 
-    db.w4prac_crwaler.update_one({"_id": ObjectId(id_give)  },
-                         { "$set": {"comment_contents": a}});
-
-
+    ret = db.w4prac_crwaler.update_one(
+        {"_id": ObjectId(id_give)},
+         { "$set":{'comment_contents': a}
+    }
+    )
+    print(ret)
     return jsonify({'msg': '한줄평 등록 완료'})
 
 
