@@ -1,119 +1,79 @@
-from flask import Flask, render_template, jsonify, request
-
+from flask import Flask, request, render_template, jsonify
 app = Flask(__name__)
 
-import requests
-from selenium import webdriver
-from bs4 import BeautifulSoup
+from bson.objectid import ObjectId
 
 from pymongo import MongoClient
 import certifi
-from bson.objectid import ObjectId
+# ca = certifi.where()
+# client = MongoClient('mongodb+srv://test:sparta@cluster0.d6xodrs.mongodb.net/Cluster0?retryWrites=true&w=majority',
+#                      tlsCAFile=ca)
+# db = client.dbsparta
+# collection = db["w4prac"]
 
 ca = certifi.where()
-
 client = MongoClient('mongodb+srv://test:sparta@cluster0.jl043qw.mongodb.net/?retryWrites=true&w=majority',
                      tlsCAFile=ca)
 db = client.dbsparta
+col = db.w4prac_crwaler
 
+import random
 
-# 크롤링할 페이지, indext.html
-@app.route('/')
-def home():
-    return render_template('index.html')
+@app.route("/")
+def index():
+    img_txt1 = {
+        'image_url': "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdLv8Yn%2FbtrS7uHosPd%2FkZ0g7BJ56oLf5IzWZfGYq0%2Fimg.jpg",
+        'text': "<아바타1>를 보고싶었는데 어디서 보냐구요?"}
+    img_txt2 = {'image_url': "https://cdn.pixabay.com/photo/2015/10/06/22/04/harry-potter-975362_1280.jpg",
+                'text': "<해리포터>를 보고싶었는데 어디서 보냐구요?"}
+    img_txt3 = {
+        'image_url': "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-1vR6WelpBTgCZd0EOPFhF2FvNtc2DfVQxQ&usqp=CAU",
+        'text': "<트랜스포머>를 보고싶었는데 어디서 보냐구요?"}
+    img_txt4 = {'image_url': "https://photo.coolenjoy.co.kr/data/editor/1701/Bimg_20170103144951_nhgpcfmf.jpg",
+                'text': "<너의 이름은>를 보고싶었는데 어디서 보냐구요?"}
 
+    IMG_TXT = [img_txt1, img_txt2, img_txt3, img_txt4]
 
-# 크롤링api
-@app.route('/test', methods=['POST'])
-def test_post():
-    url_give = request.form['url_give']
+    i = random.randrange(0, 4)
+    image_url = IMG_TXT[i]['image_url']
+    text = IMG_TXT[i]['text']
 
-    driver = webdriver.Chrome(url_give)
-    # 암묵적으로 웹 지원 로드를 위해 3초까지 기다려준다.
-    driver.implicitly_wait(3)
-    # url에 접근한다.
-    driver.get(url_give)
-    html = driver.page_source  ##페이지의 element 모두 가져오기
-    soup = BeautifulSoup(html, 'html.parser')
+    return render_template("index.html", image_url=image_url, text=text)
 
-    # headers = {
-    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
-    # data = requests.get(url_give, headers=headers)
-    # soup = BeautifulSoup(data.text, 'html.parser')
+# @app.route("/search", methods=["POST"])
+# def search():
+#     query = request.form.get("query")
+#     results = search_items(query)
+#     return render_template("search_results.html", query=query, results=results)
+#
+# def search_items(query):
+#     # col_index = col.create_index([("title", "text")])
+#     col_index = col.create_index([("title", "text"), ("image", "text")])
+#     # # Search the MongoDB database
+#     thumb_list = list(col_index.find({"$text": {"$search": query}}, {"title": 1, "poster_image": 1}))
+#     # return [{'title': item['title'], 'image': item['poster_image']} for item in items]
+#     return jsonify({'thumbnail': thumb_list})
+#
+# if __name__ == '__main__':
+#    app.run('0.0.0.0', port=6500, debug=True)
+@app.route("/search", methods=["POST"])
+def search():
+    query = request.form.get("query")
+    results = search_items(query)
+    return render_template("search_results.html", query=query, results=results)
 
-    contents = soup.select('#contents > div.movie-info-container > div.movie-header-area')
-    for content in contents:
-        content_title = content.select_one('div > h3').text
+def search_items(query):
+    col.create_index([("title", "text"), ("poster_image", "text")])
 
-    imgs = soup.select('#contents > div.movie-info-container > div')
-    for img in imgs:
-        bg_image = img.select_one('div.backdrop > img')
-        if bg_image is not None:
-            bg_url = bg_image['src']
-        poster_image = img.select_one('div.poster > img')
-        if poster_image is not None:
-            poster_url = poster_image['src']
+    # Search the MongoDB database
+    items = list(col.find({"title": {"$regex": query, "$options": "i"}}))
+    print(items)
+    return [{'title': item['title'], 'image': item['poster_image']} for item in items]
 
-    data_actor = []
-    actors_name = soup.select('#synopsis > article > div > div')
-    for actor_name in actors_name:
-        actors = actor_name.select_one('div.name')
-        if actors is not None:
-            actor = actors.text
-            data_actor.append({'actor': actor})
-
-    Synops = soup.select('#synopsis > article:nth-child(1)')
-    for Synop in Synops:
-        synop = Synop.select_one('p').text
-
-    data_ott = []
-    otts_name = soup.select("#streamingVodList > div > div.price-item-provider > div.provider-info")
-    for ott_name in otts_name:
-        OTTs = ott_name.select_one('p').text
-        data_ott.append({'ott': OTTs})
-
-    years = soup.select('#contents > div> div > div > p')
-    for year in years:
-        detail = year.select('span')
-        year_content = detail[1].text
-
-    doc = {
-        'title': content_title,
-        'bg_image': bg_url,
-        'poster_image': poster_url,
-        'actor': data_actor,
-        'synop': synop,
-        'ott': data_ott,
-        'year': year_content,
-        'comment_contents': []
-        # {'comment': '', 'star': '', 'time': ''}
-    }
-    db.w4prac_crwaler.insert_one(doc)
-    return jsonify({'msg': '저장 완료'})
-
-
-# 상세페이지, 한줄평저장api
-@app.route('/detail/', methods=['POST'])
-def detail_comment_post():
-    # id_give = request.form['id_give']
-    id_give = '63dde3df663cfbf29a97d538'
-    comment_give = request.form['comment_give']
-    star_give = request.form['star_give']
-    time_give = request.form['time_give']
-
-    a = []
-    a.append({'comment':comment_give, 'star': star_give, 'time': time_give})
-
-    # db.w4prac_comments.insert_one(comment_content)
-
-    ret = db.w4prac_crwaler.update_one(
-        {"_id": ObjectId(id_give)},
-         { "$set":{'comment_contents': a}
-    }
-    )
-    print(ret)
-    return jsonify({'msg': '한줄평 등록 완료'})
-
+@app.route("/detail/<item_id>")
+def detail(item_id):
+    item = col.find_one({"_id": ObjectId(item_id)})
+    return render_template("movie_detail.html", item=item)
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', port=4000, debug=True)
+   app.run('0.0.0.0', port=6500, debug=True)

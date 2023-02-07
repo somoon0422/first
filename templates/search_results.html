@@ -1,0 +1,197 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="ko">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>어디서봐</title>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">-->
+<!--    <style>-->
+<!--        * {-->
+<!--            font-family: 'Gowun Dodum', sans-serif;-->
+<!--        }-->
+
+<!--        input[type="text"] {-->
+<!--            font-size: 15px;-->
+<!--            width: 500px;-->
+<!--            position: absolute;-->
+<!--            top: 40%;-->
+<!--            left: 50%;-->
+<!--            border: 6px;-->
+<!--            transform: translate(-50%, -50%);-->
+<!--            background: transparent;-->
+<!--            outline: solid 1px;-->
+<!--            color: white;-->
+<!--            padding: 10px;-->
+<!--        }-->
+
+<!--        input[type="submit"] {-->
+<!--            font-size: 15px;-->
+<!--            width: 100px;-->
+<!--            position: absolute;-->
+<!--            top: 40%;-->
+<!--            left: 50%;-->
+<!--            border: 6px;-->
+<!--            transform: translate(260%, -50%);-->
+<!--            background: transparent;-->
+<!--            outline: solid 1px;-->
+<!--            color: white;-->
+<!--            padding: 10px;-->
+<!--        }-->
+<!--    </style>-->
+
+<!--    <script>-->
+<!--        $(document).ready(function () {-->
+<!--            show_order();-->
+<!--        });-->
+
+<!--        function show_order() {-->
+<!--            $.ajax({-->
+<!--                type: 'GET',-->
+<!--                url: '/search',-->
+<!--                data: {},-->
+<!--                success: function (response) {-->
+<!--                    // let title = response['thumbnail']['title']-->
+<!--                    // let image = response['thumbnail']['poster_image']-->
+<!--                    // let temp_html = `<li>-->
+<!--                    //                     <p>${title}</p>-->
+<!--                    //                     <img src="${image}">-->
+<!--                    //                 </li>`-->
+<!--                    // $('#result').append(temp_html)-->
+<!--                    //     $('#result').append(temp_html)-->
+<!--                    let rows = response['thumbnail']-->
+<!--                    for (let i = 0; i < rows.length; i++) {-->
+<!--                        let title = rows[i]['title']-->
+<!--                        let image = rows[i]['poster_image']-->
+
+<!--                        let temp_html = `<tr>-->
+<!--                                        <td>${title}</td>-->
+<!--                                        <td>${image}</td>-->
+<!--                                    </tr>`-->
+<!--                        $('#result').append(temp_html)-->
+<!--                    }-->
+<!--                }-->
+<!--            });-->
+<!--        }-->
+<!--    </script>-->
+<!--</head>-->
+
+<!--<body style="background-image: url({{ image_url }});-->
+<!--            background-color: rgba(0, 0, 0, 0.6);-->
+<!--            background-blend-mode: darken;-->
+<!--            background-repeat: no-repeat;-->
+<!--            background-attachment: fixed;-->
+<!--            background-size: 100% 100%;">-->
+
+<!--<h1 style="font-size: 60px;-->
+<!--            background-position: center;-->
+<!--            color: white;-->
+<!--            margin-top:130px;-->
+<!--            text-align: center;">어디서봐</h1>-->
+
+<!--<div style="text-align: center;">-->
+<!--    <h3 style="color:darkgray;-->
+<!--            font-weight:bold;-->
+<!--            font-size:20px;-->
+<!--            margin-top: 10px;-->
+<!--            text-align:center;">{{ text }}</h3>-->
+<!--</div>-->
+
+<!--<form class="box" action="{{ url_for('search') }}" method="post">-->
+<!--    <input type="text" name="query" placeholder="찾고 싶은 콘텐츠를 검색해보세요.">-->
+<!--    <input type="submit" value="검색">-->
+<!--</form>-->
+<!--<div>-->
+<!--    <h3>-->
+<!--        조회결과-->
+<!--    </h3>-->
+<!--    <li id="result">-->
+<!--    </li>-->
+<!--</div>-->
+
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>어디서봐</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Gowun Dodum', sans-serif;
+        }
+
+        input[type="text"] {
+            font-size: 15px;
+            width: 500px;
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            border: 6px;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            outline: solid 1px;
+            color: white;
+            padding: 10px;
+        }
+
+        input[type="submit"] {
+            font-size: 15px;
+            width: 100px;
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            border: 6px;
+            transform: translate(260%, -50%);
+            background: transparent;
+            outline: solid 1px;
+            color: white;
+            padding: 10px;
+        }
+
+        .result-item {
+            display: inline-block;
+            width: 30%;
+            margin: 1%;
+            text-align: center;
+        }
+
+        .result-item img {
+            width: 70%;
+        }
+
+        .result-item h2 {
+            color: darkgray;
+            font-weight: bold;
+            font-size: 25px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body style="background-color: rgba(0, 0, 0, 1);">
+
+    <form action="{{ url_for('search') }}" method="post">
+        <input type="text" name="query">
+        <input type="submit" value="검색">
+    </form>
+
+    <h1 style="font-size: 30px;
+         background-position: center;
+         color: white;
+         margin-top:250px;
+         text-align: center;">{{ query }} 검색 결과</h1>
+
+    <div>
+        {% for result in results %}
+
+        <div class="result-item">
+            <p><img src="{{ result['image'] }}"></p>
+            <h2>{{ result.title }}</h2>
+        </div>
+
+        {% endfor %}
+    </div>
+
+</body>
+</html>
